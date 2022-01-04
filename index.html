@@ -27,17 +27,22 @@
         <header class="">
             <h2>Click to learn more and select your favorites!</h2>
         </header>
-        <div class="button-list">
-            <button class="btn btn-primary round-pill">Options</button>
-            <button class="btn btn-primary round-pill" data-open="favorites">Favorites</button>
+        <div class="option-container button-list">
+            <button class="btn btn-primary round-pill"  aria-expanded="false" aria-controls="navBarDropdown">Options</button>
+                <ul id="main-page" class="ul-defaults-none header-sm">
+                    <li data-list="original" class="sorted btn btn-alt">Original</li>
+                    <li data-list="chronological" class="sorted btn btn-alt">Chronological</li>
+                    <li data-list="alpha" class="sorted btn btn-alt">A-Z</li>
+                    <li data-list="reverseAlpha" class="sorted btn btn-alt">Z-A</li>
+                </ul>
+            <button class="favorites-link btn btn-primary round-pill" data-open="favorites">Favorites</button>
         </div>
-
     </section>
     <div class="slide-control-container container">
-        <button>
+        <button id="left-arrow">
             <i class="fas fa-arrow-left" aria-hidden="true"></i>
         </button>
-        <button>
+        <button id="right-arrow">
             <i class="fas fa-arrow-right" aria-hidden="true"></i>
         </button>
     </div>
