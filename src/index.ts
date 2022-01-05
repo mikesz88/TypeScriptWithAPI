@@ -186,10 +186,10 @@ const popUpCard = (movie: MovieData):void => {
             </div>
             <div class="text-wrapper">
                 <div class="basic-card-info">
-                    <p>Type: ${movie.id}</p>
-                    <p>Level: ${movie.phase}</p>
-                    <p>Attack: ${movie.chronology}</p>
-                    <p>Defense: ${movie.releaseDate}</p>
+                    <p>Movie ID: ${movie.id}</p>
+                    <p>MCU Phase: ${movie.phase}</p>
+                    <p>Chronological Order: ${movie.chronology}</p>
+                    <p>Release Date: ${movie.releaseDate}</p>
                 </div>
                 <div class="card-desc">
                     ${movie.summary}
