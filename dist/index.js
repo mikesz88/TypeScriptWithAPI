@@ -8,27 +8,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+// Grabbing HTML Main Elements
 const root = document.documentElement;
 const body = root.querySelector('body');
+const section = document.getElementById('movie-grid');
+// Data holding the movie lists
 let movieList = [];
 let favMovieList = [];
-const section = document.getElementById('movie-grid');
+// Opening/Closing attributes
 const modalOpen = '[data-open]';
 const modalClose = '[data-close]';
-const isVisible = 'is-visible';
 let openModals = document.querySelectorAll(modalOpen);
+// is visible string
+const isVisible = 'is-visible';
+// to expand the navbar to show buttons
 let navButton = document.querySelectorAll('button[aria-expanded]');
+// Fav Modal
 const favSection = document.getElementById('favorites');
 let favSectionFlexBox = document.createElement('div');
 favSectionFlexBox.classList.add('fav-flex-container', 'container');
+// Buttons to sort the data
 const dataList = '[data-list]';
 let dataListLinks = document.querySelectorAll(dataList);
+// Slide/Carousel for grid variables
 let slides = document.querySelectorAll('.card-flex-container');
 let buttons = document.querySelectorAll('.slide-control-container button');
 let current = 0;
 let next = current < slides.length - 1 ? current + 1 : 0;
 let prev = current > 0 ? current - 1 : slides.length - 1;
 const active = 'active';
+// grabbing data
 const fetchData = () => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield fetch('https://mcuapi.herokuapp.com/api/v1/movies');
     const json = yield result.json();
@@ -40,6 +49,7 @@ const fetchData = () => __awaiter(void 0, void 0, void 0, function* () {
         img: movie.cover_url,
         phase: movie.phase,
         chronology: movie.chronology === null ? movie.id : movie.chronology,
+        favorite: false,
     }));
     movieList = cardData.filter((movie) => movie.id <= 27);
     paintDom(movieList);
@@ -52,6 +62,7 @@ const fetchData = () => __awaiter(void 0, void 0, void 0, function* () {
     update();
 });
 fetchData();
+// Creating Card of Movie
 const paintCard = (movie, div) => {
     div.innerHTML += `
     <div class="card-container" data-open="${movie.title}" data-type="${movie.phase}">
@@ -71,6 +82,7 @@ const paintCard = (movie, div) => {
     slides = document.querySelectorAll('.card-flex-container');
     buttons = document.querySelectorAll('.slide-control-container button');
 };
+// Create page of the allotment of cards (set for 5 per page)
 const paintPage = (pageOfMovies, firstPage) => {
     const page = document.createElement('div');
     section.appendChild(page);
@@ -87,6 +99,7 @@ const paintPage = (pageOfMovies, firstPage) => {
         }
     }
 };
+// The main command to set up the entire painting of data
 const paintDom = (listOfChoice) => {
     let pageOfMovies = [];
     for (let index = 0; index < listOfChoice.length; index++) {
@@ -110,7 +123,7 @@ const paintDom = (listOfChoice) => {
         }
     }
 };
-//MovieCount
+// MovieCount
 const movieCount = () => {
     const phaseOne = movieList.filter((movie) => movie.phase === 1).length;
     const phaseTwo = movieList.filter((movie) => movie.phase === 2).length;
@@ -157,7 +170,7 @@ const popUpCard = (movie) => {
                     ${movie.summary}
                 </div>
             </div>
-            <button id="${movie.title}" class="btn btn-primary pop-btn">Add to Favorites</button>
+            <button id="${movie.title}" class="btn btn-primary pop-btn">${!movie.favorite ? 'Add to Favorites!' : 'Remove from Favorites!'}</button>
         </div>
 
     </div>
@@ -176,7 +189,11 @@ const favButtonCheck = () => {
 const removePopup = (ele) => {
     const chosenPopUpCardHTML = document.getElementById(ele.id);
     chosenPopUpCardHTML.classList.remove('is-visible');
+    setTimeout(function () {
+        chosenPopUpCardHTML.remove();
+    }, 400);
 };
+// When cards are add/removed, update main and fav containers
 const updateMovieLists = () => {
     const containers = document.querySelectorAll('.card-flex-container');
     for (const element of containers) {
@@ -187,37 +204,44 @@ const updateMovieLists = () => {
     const favContainer = document.createElement('div');
     favContainer.classList.add('fav-flex-container', 'container');
     paintDom(movieList);
-    for (const card of favMovieList) {
-        paintCard(card, favContainer);
+    if (favMovieList) {
+        for (const card of favMovieList) {
+            paintCard(card, favContainer);
+        }
     }
-    console.log(favContainer);
     favSection.appendChild(favContainer);
     openModals = document.querySelectorAll(modalOpen);
     activateOpenModals();
     slides = document.querySelectorAll('.card-flex-container');
     buttons = document.querySelectorAll('.slide-control-container button');
 };
+// adding card to original/favorite
 const addCard = (ele) => {
     removePopup(ele);
     const originalIndex = movieList.findIndex((movie) => movie.title === ele.id);
     const favIndex = favMovieList.findIndex((movie) => movie.title === ele.id);
     if (originalIndex >= 0) {
         favMovieList.push(movieList[originalIndex]);
+        !movieList[originalIndex].favorite ? movieList[originalIndex].favorite = true : movieList[originalIndex].favorite = false;
         movieList.splice(originalIndex, 1);
         setActive(document.querySelector('[data-list="original"]'), '.sorted');
     }
     else if (favIndex >= 0) {
         movieList.push(favMovieList[favIndex]);
+        favMovieList[favIndex].favorite ? favMovieList[favIndex].favorite = false : favMovieList[favIndex].favorite = true;
         favMovieList.splice(favIndex, 1);
         setActive(document.querySelector('[data-list="fav-original"]'), '.sorted');
     }
     updateMovieLists();
 };
+// event listener to open favorite modal or popups
 const activateOpenModals = () => {
     for (const ele of openModals) {
         ele.addEventListener('click', function () {
             const modalId = ele.dataset.open;
-            const modalChosen = movieList.filter((movie) => movie.title === modalId);
+            const modalChosen = movieList.find((movie) => movie.title === modalId)
+                ? movieList.filter((movie) => movie.title === modalId)
+                : favMovieList.filter((movie) => movie.title === modalId);
             if (modalId === 'favorites') {
                 document.getElementById(modalId).classList.add(isVisible);
             }
@@ -232,6 +256,7 @@ const activateOpenModals = () => {
         });
     }
 };
+// closing based on closing attribute and delete popup if necessary
 const closeModalCheck = () => {
     const closeModal = document.querySelectorAll(modalClose);
     for (const elm of closeModal) {
@@ -249,7 +274,7 @@ const closeModalCheck = () => {
         });
     }
 };
-// setActive
+// setActive - selecting icon in navbar
 const setActive = (elm, selector) => {
     if (document.querySelector(`${selector}.${active}`) !== null) {
         document.querySelector(`${selector}.${active}`).classList.remove(active);
@@ -338,7 +363,7 @@ const toggleNav = ({ target }) => {
         }
     }
 };
-// sort function
+// sort function based on navbar selection
 const sortMovies = (list, sort) => {
     if (sort === 'alpha') {
         list = list.sort((a, b) => {
@@ -374,7 +399,7 @@ const sortMovies = (list, sort) => {
     }
     return list;
 };
-// Options Toggle
+// Navbar Options Toggle
 for (const button of navButton) {
     button.addEventListener('click', toggleNav);
 }
@@ -387,7 +412,7 @@ for (const link of dataListLinks) {
         const favContainer = document.createElement('div');
         if (list.includes('fav')) {
             oldFavContainer.remove();
-            favContainer.classList.add('fav-flex-container container');
+            favContainer.classList.add('fav-flex-container', 'container');
         }
         else {
             const containers = document.querySelectorAll('.card-flex-container');
@@ -401,23 +426,28 @@ for (const link of dataListLinks) {
                 for (const card of favOriginal) {
                     paintCard(card, favContainer);
                 }
+                favSection.appendChild(favContainer);
+                break;
             case 'fav-chronological':
                 const favChronological = sortMovies(favMovieList, 'chronological');
                 for (const card of favChronological) {
                     paintCard(card, favContainer);
                 }
+                favSection.appendChild(favContainer);
                 break;
             case 'fav-alpha':
                 const favAlpha = sortMovies(favMovieList, 'alpha');
                 for (const card of favAlpha) {
                     paintCard(card, favContainer);
                 }
+                favSection.appendChild(favContainer);
                 break;
             case 'fav-reverseAlpha':
                 const favReverse = sortMovies(favMovieList, 'reverse');
                 for (const card of favReverse) {
                     paintCard(card, favContainer);
                 }
+                favSection.appendChild(favContainer);
                 break;
             case 'original':
                 const original = sortMovies(movieList, 'original');
@@ -436,6 +466,8 @@ for (const link of dataListLinks) {
                 paintDom(reverseOriginalAlpha);
                 break;
         }
+        openModals = document.querySelectorAll(modalOpen);
+        activateOpenModals();
     });
 }
 //# sourceMappingURL=index.js.map

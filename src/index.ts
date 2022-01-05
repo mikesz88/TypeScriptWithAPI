@@ -1,29 +1,43 @@
-const root = document.documentElement;
+// Grabbing HTML Main Elements
+const root = document.documentElement! as HTMLElement;
 const body = root.querySelector('body')! as HTMLBodyElement;
+const section = document.getElementById('movie-grid')! as HTMLElement;
+
+// Data holding the movie lists
 let movieList: MovieData[] = [];
 let favMovieList: MovieData[] = [];
-const section = document.getElementById('movie-grid')! as HTMLElement;
+
+// Opening/Closing attributes
 const modalOpen = '[data-open]';
 const modalClose = '[data-close]';
-const isVisible = 'is-visible';
 let openModals: NodeListOf<HTMLElement> = document.querySelectorAll(modalOpen);
-let navButton = document.querySelectorAll('button[aria-expanded]');
+
+// is visible string
+const isVisible = 'is-visible';
+
+// to expand the navbar to show buttons
+let navButton: NodeListOf<HTMLElement> = document.querySelectorAll('button[aria-expanded]')!;
+
+// Fav Modal
 const favSection = document.getElementById('favorites')! as HTMLElement;
 let favSectionFlexBox = document.createElement('div')! as HTMLDivElement;
 favSectionFlexBox.classList.add('fav-flex-container', 'container');
-const dataList = '[data-list]';
-let dataListLinks = document.querySelectorAll(dataList);
 
+// Buttons to sort the data
+const dataList = '[data-list]';
+let dataListLinks: NodeListOf<HTMLElement> = document.querySelectorAll(dataList);
+
+
+// Slide/Carousel for grid variables
 let slides: NodeListOf<HTMLElement> = document.querySelectorAll('.card-flex-container');
 let buttons = document.querySelectorAll('.slide-control-container button');
-
 let current = 0;
 let next = current < slides.length - 1 ? current + 1 : 0;
 let prev = current > 0 ? current - 1 : slides.length - 1;
 const active = 'active';
 
 
-
+// Filtering API Data
 interface APIFilteredData {
     id: number;
     title: string;
@@ -34,6 +48,7 @@ interface APIFilteredData {
     chronology: number
 }
 
+// Movie Data Object Requirements
 interface MovieData {
     id: number;
     title: string;
@@ -41,9 +56,11 @@ interface MovieData {
     summary: string | null;
     img: string;
     phase: number;
-    chronology: number
+    chronology: number;
+    favorite: boolean;
 }
 
+// grabbing data
 const fetchData = async () => {
     const result = await fetch('https://mcuapi.herokuapp.com/api/v1/movies');
     const json = await result.json();
@@ -55,6 +72,7 @@ const fetchData = async () => {
         img: movie.cover_url,
         phase: movie.phase,
         chronology: movie.chronology === null ? movie.id : movie.chronology,
+        favorite: false,
     }))
     movieList = cardData.filter((movie: MovieData) => movie.id <= 27 );
     paintDom(movieList);
@@ -68,7 +86,7 @@ const fetchData = async () => {
 }
 fetchData();
 
-
+// Creating Card of Movie
 const paintCard = (movie: MovieData, div: HTMLDivElement) => {
     div.innerHTML += `
     <div class="card-container" data-open="${movie.title}" data-type="${movie.phase}">
@@ -89,6 +107,7 @@ const paintCard = (movie: MovieData, div: HTMLDivElement) => {
     buttons = document.querySelectorAll('.slide-control-container button');
 }
 
+// Create page of the allotment of cards (set for 5 per page)
 const paintPage = (pageOfMovies: MovieData[], firstPage?: string):void => {
     const page = document.createElement('div');
     section.appendChild(page)
@@ -106,6 +125,7 @@ const paintPage = (pageOfMovies: MovieData[], firstPage?: string):void => {
     }
 }
 
+// The main command to set up the entire painting of data
 const paintDom = (listOfChoice: MovieData[]):void => {
     let pageOfMovies: MovieData[] = [];
     for (let index = 0; index < listOfChoice.length; index++) {
@@ -127,7 +147,7 @@ const paintDom = (listOfChoice: MovieData[]):void => {
     }
 }
 
-//MovieCount
+// MovieCount
 const movieCount = ():void => {
     const phaseOne: number = movieList.filter((movie: MovieData) => movie.phase === 1).length;
     const phaseTwo: number = movieList.filter((movie: MovieData) => movie.phase === 2).length;
@@ -175,7 +195,7 @@ const popUpCard = (movie: MovieData):void => {
                     ${movie.summary}
                 </div>
             </div>
-            <button id="${movie.title}" class="btn btn-primary pop-btn">Add to Favorites</button>
+            <button id="${movie.title}" class="btn btn-primary pop-btn">${!movie.favorite ? 'Add to Favorites!' : 'Remove from Favorites!'}</button>
         </div>
 
     </div>
@@ -196,9 +216,13 @@ const favButtonCheck = () => {
 const removePopup = (ele: Element) => {
     const chosenPopUpCardHTML = document.getElementById(ele.id)!;
     chosenPopUpCardHTML.classList.remove('is-visible');
+    setTimeout(function() {
+        chosenPopUpCardHTML.remove();
+    },400);
 
 }
 
+// When cards are add/removed, update main and fav containers
 const updateMovieLists = () => {
     const containers = document.querySelectorAll('.card-flex-container')!;
     for (const element of containers) {
@@ -210,10 +234,11 @@ const updateMovieLists = () => {
     favContainer.classList.add('fav-flex-container', 'container');
 
     paintDom(movieList);
-    for (const card of favMovieList) {
-        paintCard(card, favContainer)
+    if (favMovieList) {
+        for (const card of favMovieList) {
+            paintCard(card, favContainer)
+        }
     }
-    console.log(favContainer);
     
     favSection.appendChild(favContainer);
     openModals = document.querySelectorAll(modalOpen);
@@ -222,18 +247,22 @@ const updateMovieLists = () => {
     buttons = document.querySelectorAll('.slide-control-container button');
 }
 
+// adding card to original/favorite
 const addCard = (ele: Element) => {
     removePopup(ele);
 
-    const originalIndex = movieList.findIndex((movie: MovieData) => movie.title === ele.id);
-    const favIndex = favMovieList.findIndex((movie: MovieData) => movie.title === ele.id);
+    const originalIndex: number = movieList.findIndex((movie: MovieData) => movie.title === ele.id);
+    const favIndex: number = favMovieList.findIndex((movie: MovieData) => movie.title === ele.id);
+
     if (originalIndex >= 0) {
         favMovieList.push(movieList[originalIndex]);
+        !movieList[originalIndex].favorite ? movieList[originalIndex].favorite = true : movieList[originalIndex].favorite = false;
         movieList.splice(originalIndex,1);
         setActive(document.querySelector('[data-list="original"]')!,'.sorted')
 
     } else if (favIndex >= 0) {
         movieList.push(favMovieList[favIndex]);
+        favMovieList[favIndex].favorite ? favMovieList[favIndex].favorite = false : favMovieList[favIndex].favorite = true;
         favMovieList.splice(favIndex,1);
         setActive(document.querySelector('[data-list="fav-original"]')!,'.sorted')
     }
@@ -241,14 +270,17 @@ const addCard = (ele: Element) => {
     updateMovieLists();
 }
 
+// event listener to open favorite modal or popups
 const activateOpenModals = ():void => {    
     for (const ele of openModals) {                
         ele.addEventListener('click', function() {                            
             const modalId: string | undefined = ele.dataset.open;
-            const modalChosen: MovieData[] | undefined = movieList.filter((movie: MovieData) => movie.title === modalId );        
+            const modalChosen: MovieData[] | undefined = movieList.find((movie: MovieData) => movie.title === modalId )
+            ? movieList.filter((movie: MovieData) => movie.title === modalId )
+            : favMovieList.filter((movie: MovieData) => movie.title === modalId );     
             if (modalId === 'favorites') {
                 document.getElementById(modalId)!.classList.add(isVisible);
-            } else {                            
+            } else {                           
                 popUpCard(modalChosen[0]);
                 setTimeout(function() {
                     document.getElementById(modalChosen[0].title)!.classList.add(isVisible);
@@ -260,6 +292,7 @@ const activateOpenModals = ():void => {
     }
 }
 
+// closing based on closing attribute and delete popup if necessary
 const closeModalCheck = ():void => {
     const closeModal:NodeListOf<HTMLElement> = document.querySelectorAll(modalClose);
     for (const elm of closeModal) {
@@ -277,7 +310,7 @@ const closeModalCheck = ():void => {
     }
 }
 
-// setActive
+// setActive - selecting icon in navbar
 const setActive = (elm: Element, selector: string) => {
     if (document.querySelector(`${selector}.${active}`) !== null) {
         document.querySelector(`${selector}.${active}`)!.classList.remove(active);
@@ -376,7 +409,9 @@ const toggleNav = ({target}: any) => {
     }
 }
 
-// sort function
+
+
+// sort function based on navbar selection
 const sortMovies = (list: MovieData[], sort: 'alpha' | 'reverse' | 'chronological' | 'original') => {
     if (sort === 'alpha') {
         list = list.sort((a:MovieData, b:MovieData) => {
@@ -402,9 +437,10 @@ const sortMovies = (list: MovieData[], sort: 'alpha' | 'reverse' | 'chronologica
     return list;
 }
 
-// Options Toggle
+// Navbar Options Toggle
 for (const button of navButton) {
     button.addEventListener('click', toggleNav);
+    
 }
 
 // show sorted cards per category
@@ -416,7 +452,7 @@ for (const link of dataListLinks) {
         const favContainer = document.createElement('div');
         if (list.includes('fav')) {
             oldFavContainer.remove();
-            favContainer.classList.add('fav-flex-container container');
+            favContainer.classList.add('fav-flex-container', 'container');
         } else {
             const containers = document.querySelectorAll('.card-flex-container');
             for (const element of containers) {
@@ -425,36 +461,42 @@ for (const link of dataListLinks) {
         }
         switch (list) {
             case 'fav-original':
-                const favOriginal: MovieData[] = sortMovies(favMovieList, 'original')
-                for (const card of favOriginal) {
+                const favOriginal: MovieData[] = sortMovies(favMovieList, 'original')    
+                for (const card of favOriginal) {                    
                     paintCard(card, favContainer)
                 }
+                favSection.appendChild(favContainer);
+            break;
             case 'fav-chronological':
                 const favChronological: MovieData[] = sortMovies(favMovieList, 'chronological')
                 for (const card of favChronological) {
                     paintCard(card, favContainer)
                 }
+                favSection.appendChild(favContainer);
             break;
             case 'fav-alpha':
                 const favAlpha: MovieData[] = sortMovies(favMovieList, 'alpha')
                 for (const card of favAlpha) {
                     paintCard(card, favContainer)
                 }
+                favSection.appendChild(favContainer);
             break;
             case 'fav-reverseAlpha':
                 const favReverse: MovieData[] = sortMovies(favMovieList, 'reverse')
                 for (const card of favReverse) {
                     paintCard(card, favContainer)
                 }
+                favSection.appendChild(favContainer);
             break;
             case 'original':
                 const original: MovieData[] = sortMovies(movieList, 'original')
                 paintDom(original);            
-                break;
+            break;
 
             case 'chronological':
                 const originalChronological: MovieData[] = sortMovies(movieList, 'chronological');
-                paintDom(originalChronological);            break;
+                paintDom(originalChronological);            
+            break;
             case 'alpha':
                 const originalAlpha: MovieData[] = sortMovies(movieList, 'alpha');
                 paintDom(originalAlpha);
@@ -464,5 +506,7 @@ for (const link of dataListLinks) {
                 paintDom(reverseOriginalAlpha);
             break;
         }
+        openModals = document.querySelectorAll(modalOpen);
+        activateOpenModals();
     })
 }

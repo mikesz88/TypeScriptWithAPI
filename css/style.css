@@ -261,13 +261,14 @@
 
 .modal-dialog {
     max-width: 800px;
-    max-height: 100vh;
+    max-height: 80vh;
     background: var(--bg-panel);
     color: var(--color-text-base);
     overflow: hidden;
     padding: 1.25rem 1.85rem;
     border-radius: 5px;
     cursor: default;
+    overflow-y: auto;
 }
 
 .modal-header {
