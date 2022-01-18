@@ -1,6 +1,6 @@
 # [Project 8 TypeScript Version - TypeScript Website with API](https://mikesz88.github.io/TypeScriptWithAPI/)
 
-***I followed the same requirement as Project 8, but I chose to redo it in TypeScript.***
+***I followed the same requirements as Project 8, but I chose to redo it in TypeScript.***
 
 You are going to create your own website that fetches and displays real data from an API.
 
