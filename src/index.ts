@@ -65,38 +65,14 @@ interface MovieData {
 
 // grabbing data
 const fetchData = async () => {
-  const result = /* (await fetch(
-    'https://mcuapi.herokuapp.com/api/v1/movies'
-  )) ||  */ [
-    {
-      id: 0,
-      title: 'does',
-      releaseDate: 'not',
-      summary: 'work',
-      img: '',
-      phase: 0,
-      chronology: 0,
-      favorite: false,
-    },
-  ];
-
-  //   const json = await result.json();
-  const json = await result;
-  //   const cardData = json.data.map((movie: APIFilteredData) => ({
-  const cardData = json.map((movie: MovieData) => ({
-    // id: movie.id,
-    // title: movie.title,
-    // releaseDate: movie.release_date,
-    // summary: movie.overview,
-    // img: movie.cover_url,
-    // phase: movie.phase,
-    // chronology: movie.chronology === null ? movie.id : movie.chronology,
-    // favorite: false,
+  const result = await fetch('https://mcuapi.herokuapp.com/api/v1/movies');
+  const json = await result.json();
+  const cardData = json.data.map((movie: APIFilteredData) => ({
     id: movie.id,
     title: movie.title,
-    releaseDate: movie.releaseDate,
-    summary: movie.summary,
-    img: movie.img,
+    releaseDate: movie.release_date,
+    summary: movie.overview,
+    img: movie.cover_url,
     phase: movie.phase,
     chronology: movie.chronology === null ? movie.id : movie.chronology,
     favorite: false,
